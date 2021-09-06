@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CitasApi.Data;
 using CitasApi.Models;
+using CitasApi.DTO;
+using CitasApi.Services;
+using AutoMapper;
 
 namespace CitasApi.Controllers
 {
@@ -14,95 +17,56 @@ namespace CitasApi.Controllers
     [ApiController]
     public class CitasController : ControllerBase
     {
-        private readonly CitasMedicasContext _context;
+        private ICitaService CService;
+        private IMapper Mapper;
 
-        public CitasController(CitasMedicasContext context)
+        public CitasController(ICitaService service, IMapper mapper)
         {
-            _context = context;
+            CService = service;
+            Mapper = mapper;
         }
 
         // GET: api/Citas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cita>>> GetCitas()
+        public IActionResult GetCitas()
         {
-            return await _context.Citas.ToListAsync();
+            IList<CitaDTO> citasDTO = new List<CitaDTO>();
+            foreach(Cita c in CService.FindAll())
+            {
+                citasDTO.Add(Mapper.Map<CitaDTO>(c));
+            }
+            return Ok(new MensajeDTO(200, citasDTO));
         }
 
         // GET: api/Citas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Cita>> GetCita(long id)
+        public IActionResult GetCita(long id)
         {
-            var cita = await _context.Citas.FindAsync(id);
+            Cita c = CService.FindById(id);
 
-            if (cita == null)
+            if (c is not null)
             {
-                return NotFound();
+                return Ok(new MensajeDTO(200, Mapper.Map<CitaDTO>(c)));
             }
 
-            return cita;
-        }
-
-        // PUT: api/Citas/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCita(long id, Cita cita)
-        {
-            if (id != cita.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(cita).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CitaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado la cita."));
         }
 
         // POST: api/Citas
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Cita>> PostCita(Cita cita)
+        public IActionResult PostCita(CitaDTO citaDTO)
         {
-            _context.Citas.Add(cita);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCita", new { id = cita.Id }, cita);
+            bool alm = CService.Save(Mapper.Map<Cita>(citaDTO));
+            if (!alm) return Ok(new MensajeDTO(412, "ERROR > La cita ya existe."));
+            else return Ok(new MensajeDTO(200, "Cita registrada con exito."));
         }
 
         // DELETE: api/Citas/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCita(long id)
+        public IActionResult DeleteCita(long id)
         {
-            var cita = await _context.Citas.FindAsync(id);
-            if (cita == null)
-            {
-                return NotFound();
-            }
-
-            _context.Citas.Remove(cita);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CitaExists(long id)
-        {
-            return _context.Citas.Any(e => e.Id == id);
+            CService.DeleteById(id);
+            return Ok(new MensajeDTO(200, "Cita eliminado con exito."));
         }
     }
 }

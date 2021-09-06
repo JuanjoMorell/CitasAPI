@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CitasApi.Data;
 using CitasApi.Models;
+using CitasApi.DTO;
+using CitasApi.Services;
+using AutoMapper;
 
 namespace CitasApi.Controllers
 {
@@ -14,95 +17,57 @@ namespace CitasApi.Controllers
     [ApiController]
     public class MedicosController : ControllerBase
     {
-        private readonly CitasMedicasContext _context;
+        private IMedicoService MService;
+        private IMapper Mapper;
 
-        public MedicosController(CitasMedicasContext context)
+        public MedicosController(IMedicoService service, IMapper mapper)
         {
-            _context = context;
+            MService = service;
+            Mapper = mapper;
         }
 
         // GET: api/Medicos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Medico>>> GetMedicos()
+        public IActionResult GetMedicos()
         {
-            return await _context.Medicos.ToListAsync();
+            IList<MedicoDTO> medicosDTO = new List<MedicoDTO>();
+            foreach(Medico m in MService.FindAll())
+            {
+                medicosDTO.Add(Mapper.Map<MedicoDTO>(m));
+            }
+            return Ok(new MensajeDTO(200, medicosDTO));
         }
 
         // GET: api/Medicos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Medico>> GetMedico(long id)
+        public IActionResult GetMedico(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
+            Medico m = MService.FindById(id);
 
-            if (medico == null)
+            if (m is not null)
             {
-                return NotFound();
+                return Ok(new MensajeDTO(200, Mapper.Map<MedicoDTO>(m)));
             }
 
-            return medico;
-        }
-
-        // PUT: api/Medicos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutMedico(long id, Medico medico)
-        {
-            if (id != medico.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(medico).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!MedicoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado al medico."));
         }
 
         // POST: api/Medicos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Medico>> PostMedico(Medico medico)
+        public IActionResult PostMedico(MedicoDTO medicoDTO)
         {
-            _context.Medicos.Add(medico);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetMedico", new { id = medico.Id }, medico);
+            bool alm = MService.Save(Mapper.Map<Medico>(medicoDTO));
+            if (!alm) return Ok(new MensajeDTO(412, "ERROR > El medico ya existe."));
+            else return Ok(new MensajeDTO(200, "Medico registrado con exito."));
         }
 
         // DELETE: api/Medicos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedico(long id)
+        public IActionResult DeleteMedico(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
-            if (medico == null)
-            {
-                return NotFound();
-            }
-
-            _context.Medicos.Remove(medico);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool MedicoExists(long id)
-        {
-            return _context.Medicos.Any(e => e.Id == id);
+            MService.DeleteById(id);
+            return Ok(new MensajeDTO(200, "Medico eliminado con exito"));
         }
     }
 }

@@ -49,6 +49,10 @@ namespace CitasApi
 
             // Anadir servicios
             services.AddScoped<IUsuarioService, UsuarioService>();
+            services.AddScoped<IPacienteService, PacienteService>();
+            services.AddScoped<IMedicoService, MedicoService>();
+            services.AddScoped<IDiagnosticoService, DiagnosticoService>();
+            services.AddScoped<ICitaService, CitaService>();
             services.AddMvc();
         }
 

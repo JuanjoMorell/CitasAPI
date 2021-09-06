@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CitasApi.Data;
 using CitasApi.Models;
+using CitasApi.DTO;
+using CitasApi.Services;
+using AutoMapper;
 
 namespace CitasApi.Controllers
 {
@@ -14,95 +17,65 @@ namespace CitasApi.Controllers
     [ApiController]
     public class PacientesController : ControllerBase
     {
-        private readonly CitasMedicasContext _context;
+        private IPacienteService PService;
+        private IMapper Mapper;
 
-        public PacientesController(CitasMedicasContext context)
+        public PacientesController(IPacienteService service, IMapper mapper)
         {
-            _context = context;
+            PService = service;
+            Mapper = mapper;
         }
 
         // GET: api/Pacientes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Paciente>>> GetPacientes()
+        public IActionResult GetPacientes()
         {
-            return await _context.Pacientes.ToListAsync();
+            IList<PacienteDTO> pacientesDTO = new List<PacienteDTO>();
+            foreach(Paciente p in PService.FindAll())
+            {
+                pacientesDTO.Add(Mapper.Map<PacienteDTO>(p));
+            }
+            return Ok(new MensajeDTO(200,pacientesDTO));
         }
 
         // GET: api/Pacientes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Paciente>> GetPaciente(long id)
+        public IActionResult GetPaciente(long id)
         {
-            var paciente = await _context.Pacientes.FindAsync(id);
+            Paciente p = PService.FindById(id);
 
-            if (paciente == null)
+            if (p is not null)
             {
-                return NotFound();
+                return Ok(new MensajeDTO(200,Mapper.Map<PacienteDTO>(p)));
             }
 
-            return paciente;
-        }
-
-        // PUT: api/Pacientes/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutPaciente(long id, Paciente paciente)
-        {
-            if (id != paciente.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(paciente).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!PacienteExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado al paciente."));
         }
 
         // POST: api/Pacientes
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Paciente>> PostPaciente(Paciente paciente)
+        public IActionResult PostPaciente(PacienteDTO pacienteDTO)
         {
-            _context.Pacientes.Add(paciente);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetPaciente", new { id = paciente.Id }, paciente);
+            bool alm = PService.Save(Mapper.Map<Paciente>(pacienteDTO));
+            if (!alm) return Ok(new MensajeDTO(412, "ERROR > El paciente ya existe."));
+            else return Ok(new MensajeDTO(200, "Paciente registrado con exito."));
         }
 
         // DELETE: api/Pacientes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePaciente(long id)
+        public IActionResult DeletePaciente(long id)
         {
-            var paciente = await _context.Pacientes.FindAsync(id);
-            if (paciente == null)
-            {
-                return NotFound();
-            }
-
-            _context.Pacientes.Remove(paciente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            PService.DeleteById(id);
+            return Ok(new MensajeDTO(200, "Paciente eliminado con exito."));
         }
 
-        private bool PacienteExists(long id)
+        [HttpPut]
+        public IActionResult AddMedico(PacienteMedicoDTO pmDTO)
         {
-            return _context.Pacientes.Any(e => e.Id == id);
+            bool alm = PService.AddMedico(pmDTO.PacienteID, pmDTO.MedicoID);
+            if (alm) return Ok(new MensajeDTO(200, "Medico registrado con exito."));
+            else return Ok(new MensajeDTO(402, "Medico o Paciente ya existe."));
         }
+
     }
 }

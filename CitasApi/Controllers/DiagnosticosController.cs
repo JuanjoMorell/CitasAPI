@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CitasApi.Data;
 using CitasApi.Models;
+using CitasApi.Services;
+using AutoMapper;
+using CitasApi.DTO;
 
 namespace CitasApi.Controllers
 {
@@ -14,95 +17,54 @@ namespace CitasApi.Controllers
     [ApiController]
     public class DiagnosticosController : ControllerBase
     {
-        private readonly CitasMedicasContext _context;
+        private IDiagnosticoService DService;
+        private IMapper Mapper;
 
-        public DiagnosticosController(CitasMedicasContext context)
+        public DiagnosticosController(IDiagnosticoService service, IMapper mapper)
         {
-            _context = context;
+            DService = service;
+            Mapper = mapper;
         }
 
         // GET: api/Diagnosticos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Diagnostico>>> GetDiagnosticos()
+        public IActionResult GetDiagnosticos()
         {
-            return await _context.Diagnosticos.ToListAsync();
+            IList<DiagnosticoDTO> diagsDTO = new List<DiagnosticoDTO>();
+            foreach(Diagnostico d in DService.FindAll())
+            {
+                diagsDTO.Add(Mapper.Map<DiagnosticoDTO>(d));
+            }
+            return Ok(new MensajeDTO(200, diagsDTO));
         }
 
         // GET: api/Diagnosticos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Diagnostico>> GetDiagnostico(long id)
+        public IActionResult GetDiagnostico(long id)
         {
-            var diagnostico = await _context.Diagnosticos.FindAsync(id);
-
-            if (diagnostico == null)
+            Diagnostico d = DService.FindById(id);
+            if(d is not null)
             {
-                return NotFound();
+                return Ok(new MensajeDTO(200, Mapper.Map<DiagnosticoDTO>(d)));
             }
-
-            return diagnostico;
-        }
-
-        // PUT: api/Diagnosticos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutDiagnostico(long id, Diagnostico diagnostico)
-        {
-            if (id != diagnostico.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(diagnostico).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DiagnosticoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado el diagnostico."));
         }
 
         // POST: api/Diagnosticos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Diagnostico>> PostDiagnostico(Diagnostico diagnostico)
+        public IActionResult PostDiagnostico(DiagnosticoDTO diagnosticoDTO)
         {
-            _context.Diagnosticos.Add(diagnostico);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetDiagnostico", new { id = diagnostico.Id }, diagnostico);
+            bool alm = DService.Save(Mapper.Map<Diagnostico>(diagnosticoDTO));
+            if (!alm) return Ok(new MensajeDTO(412, "ERROR > El diagnostico ya existe."));
+            else return Ok(new MensajeDTO(200, "Diagnostico registrado con exito."));
         }
 
         // DELETE: api/Diagnosticos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDiagnostico(long id)
+        public IActionResult DeleteDiagnostico(long id)
         {
-            var diagnostico = await _context.Diagnosticos.FindAsync(id);
-            if (diagnostico == null)
-            {
-                return NotFound();
-            }
-
-            _context.Diagnosticos.Remove(diagnostico);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool DiagnosticoExists(long id)
-        {
-            return _context.Diagnosticos.Any(e => e.Id == id);
+            DService.DeleteById(id);
+            return Ok(new MensajeDTO(200, "Diagnostico eliminado con exito."));
         }
     }
 }

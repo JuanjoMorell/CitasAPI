@@ -7,5 +7,8 @@ namespace CitasApi.DTO
 {
     public class DiagnosticoDTO
     {
+        public long Id { get; set; }
+        public string Valoracion_Especialista { get; set; }
+        public string Enfermedad { get; set; }
     }
 }
