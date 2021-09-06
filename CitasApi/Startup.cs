@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using CitasApi.Models;
 using CitasApi.Data;
 using Microsoft.EntityFrameworkCore;
+using CitasApi.Services;
+using AutoMapper;
 
 namespace CitasApi
 {
@@ -29,13 +31,25 @@ namespace CitasApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddCors();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "CitasApi", Version = "v1" });
             });
             services.AddDbContext<CitasMedicasContext>(options => options.UseSqlServer(Configuration.GetConnectionString("CitasMedicasConnectionString")));
+
+            // Asignacion de Mapper
+            var mapperConfig = new MapperConfiguration(m =>
+            {
+                m.AddProfile<MapperProfile>();
+            });
+            IMapper mapper = mapperConfig.CreateMapper();
+            services.AddSingleton(mapper);
+
+            // Anadir servicios
+            services.AddScoped<IUsuarioService, UsuarioService>();
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

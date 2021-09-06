@@ -27,6 +27,10 @@ namespace CitasApi.Data
             modelBuilder.Entity<Medico>().ToTable("Medico");
             modelBuilder.Entity<Diagnostico>().ToTable("Diagnostico");
             modelBuilder.Entity<Cita>().ToTable("Cita");
+
+            modelBuilder.Entity<Usuario>()
+                .HasAlternateKey(u => u.Username)
+                .HasName("Username");
         }
     }
 }

@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CitasApi.Data;
 using CitasApi.Models;
+using CitasApi.DTO;
+using CitasApi.Services;
+using AutoMapper;
 
 namespace CitasApi.Controllers
 {
@@ -14,95 +17,55 @@ namespace CitasApi.Controllers
     [ApiController]
     public class UsuariosController : ControllerBase
     {
-        private readonly CitasMedicasContext _context;
+        private IUsuarioService UService;
+        private IMapper Mapper;
 
-        public UsuariosController(CitasMedicasContext context)
+        public UsuariosController(IUsuarioService service, IMapper mapper)
         {
-            _context = context;
+            UService = service;
+            Mapper = mapper;
         }
 
         // GET: api/Usuarios
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        public IActionResult GetUsuarios()
         {
-            return await _context.Usuarios.ToListAsync();
+            IList<UsuarioDTO> usuariosDTO = new List<UsuarioDTO>();
+            foreach (Usuario u in UService.FindAll())
+            {
+                usuariosDTO.Add(Mapper.Map<UsuarioDTO>(u));
+            }
+            return Ok(new MensajeDTO(200, usuariosDTO));
         }
 
         // GET: api/Usuarios/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> GetUsuario(long id)
+        public IActionResult GetUsuario(long id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-
-            if (usuario == null)
+            Usuario u = UService.FindById(id);
+            if (u is not null)
             {
-                return NotFound();
+                return Ok(new MensajeDTO(200,Mapper.Map<UsuarioDTO>(u)));
             }
-
-            return usuario;
-        }
-
-        // PUT: api/Usuarios/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuario(long id, Usuario usuario)
-        {
-            if (id != usuario.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(usuario).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UsuarioExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado a ningun usuario con esa id."));  
         }
 
         // POST: api/Usuarios
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public IActionResult PostUsuario(UsuarioDTO usuarioDTO)
         {
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUsuario", new { id = usuario.Id }, usuario);
+            bool alm = UService.Save(Mapper.Map<Usuario>(usuarioDTO));
+            if (!alm) return Ok(new MensajeDTO(412, "ERROR > El usuario ya existe."));
+            else return Ok(new MensajeDTO(200, "Usuario registrado con exito."));
         }
 
         // DELETE: api/Usuarios/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuario(long id)
+        public IActionResult DeleteUsuario(long id)
         {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            _context.Usuarios.Remove(usuario);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            UService.DeleteById(id);
+            return Ok(new MensajeDTO(200, "Usuario eliminado con exito."));
         }
 
-        private bool UsuarioExists(long id)
-        {
-            return _context.Usuarios.Any(e => e.Id == id);
-        }
     }
 }
