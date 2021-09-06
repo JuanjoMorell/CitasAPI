@@ -12,47 +12,47 @@ namespace CitasApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MedicosController : ControllerBase
+    public class CitasController : ControllerBase
     {
         private readonly CitasMedicasContext _context;
 
-        public MedicosController(CitasMedicasContext context)
+        public CitasController(CitasMedicasContext context)
         {
             _context = context;
         }
 
-        // GET: api/Medicos
+        // GET: api/Citas
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Medico>>> GetMedicos()
+        public async Task<ActionResult<IEnumerable<Cita>>> GetCitas()
         {
-            return await _context.Medicos.ToListAsync();
+            return await _context.Citas.ToListAsync();
         }
 
-        // GET: api/Medicos/5
+        // GET: api/Citas/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Medico>> GetMedico(long id)
+        public async Task<ActionResult<Cita>> GetCita(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
+            var cita = await _context.Citas.FindAsync(id);
 
-            if (medico == null)
+            if (cita == null)
             {
                 return NotFound();
             }
 
-            return medico;
+            return cita;
         }
 
-        // PUT: api/Medicos/5
+        // PUT: api/Citas/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMedico(long id, Medico medico)
+        public async Task<IActionResult> PutCita(long id, Cita cita)
         {
-            if (id != medico.Id)
+            if (id != cita.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(medico).State = EntityState.Modified;
+            _context.Entry(cita).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +60,7 @@ namespace CitasApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!MedicoExists(id))
+                if (!CitaExists(id))
                 {
                     return NotFound();
                 }
@@ -73,36 +73,36 @@ namespace CitasApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Medicos
+        // POST: api/Citas
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Medico>> PostMedico(Medico medico)
+        public async Task<ActionResult<Cita>> PostCita(Cita cita)
         {
-            _context.Medicos.Add(medico);
+            _context.Citas.Add(cita);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMedico", new { id = medico.Id }, medico);
+            return CreatedAtAction("GetCita", new { id = cita.Id }, cita);
         }
 
-        // DELETE: api/Medicos/5
+        // DELETE: api/Citas/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedico(long id)
+        public async Task<IActionResult> DeleteCita(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
-            if (medico == null)
+            var cita = await _context.Citas.FindAsync(id);
+            if (cita == null)
             {
                 return NotFound();
             }
 
-            _context.Medicos.Remove(medico);
+            _context.Citas.Remove(cita);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool MedicoExists(long id)
+        private bool CitaExists(long id)
         {
-            return _context.Medicos.Any(e => e.Id == id);
+            return _context.Citas.Any(e => e.Id == id);
         }
     }
 }

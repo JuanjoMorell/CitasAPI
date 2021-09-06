@@ -12,47 +12,47 @@ namespace CitasApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MedicosController : ControllerBase
+    public class DiagnosticosController : ControllerBase
     {
         private readonly CitasMedicasContext _context;
 
-        public MedicosController(CitasMedicasContext context)
+        public DiagnosticosController(CitasMedicasContext context)
         {
             _context = context;
         }
 
-        // GET: api/Medicos
+        // GET: api/Diagnosticos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Medico>>> GetMedicos()
+        public async Task<ActionResult<IEnumerable<Diagnostico>>> GetDiagnosticos()
         {
-            return await _context.Medicos.ToListAsync();
+            return await _context.Diagnosticos.ToListAsync();
         }
 
-        // GET: api/Medicos/5
+        // GET: api/Diagnosticos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Medico>> GetMedico(long id)
+        public async Task<ActionResult<Diagnostico>> GetDiagnostico(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
+            var diagnostico = await _context.Diagnosticos.FindAsync(id);
 
-            if (medico == null)
+            if (diagnostico == null)
             {
                 return NotFound();
             }
 
-            return medico;
+            return diagnostico;
         }
 
-        // PUT: api/Medicos/5
+        // PUT: api/Diagnosticos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutMedico(long id, Medico medico)
+        public async Task<IActionResult> PutDiagnostico(long id, Diagnostico diagnostico)
         {
-            if (id != medico.Id)
+            if (id != diagnostico.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(medico).State = EntityState.Modified;
+            _context.Entry(diagnostico).State = EntityState.Modified;
 
             try
             {
@@ -60,7 +60,7 @@ namespace CitasApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!MedicoExists(id))
+                if (!DiagnosticoExists(id))
                 {
                     return NotFound();
                 }
@@ -73,36 +73,36 @@ namespace CitasApi.Controllers
             return NoContent();
         }
 
-        // POST: api/Medicos
+        // POST: api/Diagnosticos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Medico>> PostMedico(Medico medico)
+        public async Task<ActionResult<Diagnostico>> PostDiagnostico(Diagnostico diagnostico)
         {
-            _context.Medicos.Add(medico);
+            _context.Diagnosticos.Add(diagnostico);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetMedico", new { id = medico.Id }, medico);
+            return CreatedAtAction("GetDiagnostico", new { id = diagnostico.Id }, diagnostico);
         }
 
-        // DELETE: api/Medicos/5
+        // DELETE: api/Diagnosticos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteMedico(long id)
+        public async Task<IActionResult> DeleteDiagnostico(long id)
         {
-            var medico = await _context.Medicos.FindAsync(id);
-            if (medico == null)
+            var diagnostico = await _context.Diagnosticos.FindAsync(id);
+            if (diagnostico == null)
             {
                 return NotFound();
             }
 
-            _context.Medicos.Remove(medico);
+            _context.Diagnosticos.Remove(diagnostico);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool MedicoExists(long id)
+        private bool DiagnosticoExists(long id)
         {
-            return _context.Medicos.Any(e => e.Id == id);
+            return _context.Diagnosticos.Any(e => e.Id == id);
         }
     }
 }
