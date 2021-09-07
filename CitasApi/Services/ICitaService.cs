@@ -10,9 +10,11 @@ namespace CitasApi.Services
     {
         public ICollection<Cita> FindAll();
         public Cita FindById(long id);
-        public Cita FindByPaciente(string username);
-        public Cita FindByMedico(string username);
-        public bool Save(Cita cita);
+        public ICollection<Cita> FindByPaciente(long pacienteID);
+        public ICollection<Cita> FindByMedico(long medicoID);
+        public bool Save(Cita cita, long pacienteID, long medicoID);
         public void DeleteById(long id);
+
+        public bool AddDiagnostico(long citaID, Diagnostico diag);
     }
 }

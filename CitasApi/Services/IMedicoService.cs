@@ -13,5 +13,8 @@ namespace CitasApi.Services
         public Medico FindByUsername(string username);
         public bool Save(Medico medico);
         public void DeleteById(long id);
+
+        public bool AddPaciente(long medicoID, long pacienteID);
+        public Medico Login(string username, string clave);
     }
 }

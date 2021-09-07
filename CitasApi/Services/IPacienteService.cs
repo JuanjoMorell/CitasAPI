@@ -16,5 +16,6 @@ namespace CitasApi.Services
 
         // Operaciones extra
         public bool AddMedico(long pacienteID, long medicoID);
+        public Paciente Login(string username, string clave);
     }
 }

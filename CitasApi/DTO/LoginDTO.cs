@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace CitasApi.DTO
 {
-    public class PacienteMedicoDTO
+    public class LoginDTO
     {
-        public long PacienteID { get; set; }
-        public long MedicoID { get; set; }
+        public string Username { get; set; }
+        public string Clave { get; set; }
     }
 }

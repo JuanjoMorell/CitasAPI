@@ -40,13 +40,27 @@ namespace CitasApi.Controllers
 
         // GET: api/Pacientes/5
         [HttpGet("{id}")]
-        public IActionResult GetPaciente(long id)
+        public IActionResult GetPacienteById(long id)
         {
             Paciente p = PService.FindById(id);
 
             if (p is not null)
             {
                 return Ok(new MensajeDTO(200,Mapper.Map<PacienteDTO>(p)));
+            }
+
+            return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado al paciente."));
+        }
+
+        // GET: api/Pacientes/u/5
+        [HttpGet("usuario/{username}")]
+        public IActionResult GetPacienteByUsername(string username)
+        {
+            Paciente p = PService.FindByUsername(username);
+
+            if (p is not null)
+            {
+                return Ok(new MensajeDTO(200, Mapper.Map<PacienteDTO>(p)));
             }
 
             return Ok(new MensajeDTO(404, "ERROR > No se ha encontrado al paciente."));
@@ -70,11 +84,20 @@ namespace CitasApi.Controllers
         }
 
         [HttpPut]
-        public IActionResult AddMedico(PacienteMedicoDTO pmDTO)
+        public IActionResult AddMedico(MedicoPacienteDTO pmDTO)
         {
             bool alm = PService.AddMedico(pmDTO.PacienteID, pmDTO.MedicoID);
             if (alm) return Ok(new MensajeDTO(200, "Medico registrado con exito."));
             else return Ok(new MensajeDTO(402, "Medico o Paciente ya existe."));
+        }
+
+        // LOGIN
+        [HttpPost("Login")]
+        public IActionResult Login(LoginDTO login)
+        {
+            Paciente p = PService.Login(login.Username, login.Clave);
+            if (p is not null) return Ok(new MensajeDTO(200, Mapper.Map<PacienteDTO>(p)));
+            else return Ok(new MensajeDTO(404, "ERROR > Login incorrecto"));
         }
 
     }

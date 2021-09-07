@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CitasApi.Data;
 using CitasApi.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace CitasApi.Services
 {
@@ -32,17 +33,17 @@ namespace CitasApi.Services
 
         public ICollection<Paciente> FindAll()
         {
-            return CMContext.Pacientes.ToList<Paciente>();
+            return CMContext.Pacientes.Include(p => p.Medicos).ToList();
         }
 
         public Paciente FindById(long id)
         {
-            return CMContext.Pacientes.Find(id);
+            return CMContext.Pacientes.Where(p => p.Id == id).Include(p => p.Medicos).FirstOrDefault();
         }
 
         public Paciente FindByUsername(string username)
         {
-            return CMContext.Pacientes.Where(p => p.Username == username).FirstOrDefault();
+            return CMContext.Pacientes.Where(p => p.Username == username).Include(p => p.Medicos).FirstOrDefault();
         }
 
         public bool Save(Paciente paciente)
@@ -67,6 +68,13 @@ namespace CitasApi.Services
 
             CMContext.SaveChanges();
             return true;
+        }
+
+        public Paciente Login(string username, string clave)
+        {
+            Paciente p = FindByUsername(username);
+            if (p is not null && p.Clave == clave) return p;
+            return null;
         }
     }
 }
